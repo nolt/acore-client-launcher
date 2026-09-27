@@ -16,8 +16,15 @@ export enum Phase { starting, fetching, checking, downloading, ready, updated, f
 // Why the update failed, for a message the player can act on.
 export enum Failure { network, server, disk, manifest }
 
+// Why PLAY did not start the game; none once it did or after the next update.
+export enum GameStartError { none, missing, no-wine, failed, exited }
+
+// Why the chosen install folder cannot be used.
+export enum InstallError { none, not-absolute, no-permission, failed }
+
 export component MainWindow inherits Window {
     title: Brand.server-name;
+    icon: @image-url("assets/icon.png");
     no-frame: true;
     width: Brand.window-width;
     height: Brand.window-height;
@@ -36,11 +43,19 @@ export component MainWindow inherits Window {
     in property <string> transfer-info;  // "4.2 MB/s  ·  ~40 s"
     in property <string> game-version;
     in property <float> progress;     // 0..1
+    in property <GameStartError> launch-error;
+    in property <bool> game-starting;  // PLAY pressed, waiting to see the game keeps running
+    in property <string> program;     // what PLAY starts, e.g. "Wow.exe"
 
-    property <bool> can-play: root.phase == Phase.ready || root.phase == Phase.updated;
+    property <bool> can-play: !root.game-starting && (root.phase == Phase.ready || root.phase == Phase.updated);
     property <bool> can-retry: root.phase == Phase.failed;
     property <string> status-text:
-        root.phase == Phase.starting ? @tr("Starting…")
+        root.game-starting ? @tr("Starting {}…", root.program)
+        : root.launch-error == GameStartError.missing ? @tr("{} is missing from the game folder. Use Check files in the tools.", root.program)
+        : root.launch-error == GameStartError.no-wine ? @tr("The game needs Wine. Install it from your distribution's packages and try again.")
+        : root.launch-error == GameStartError.failed ? @tr("Could not start {}.", root.program)
+        : root.launch-error == GameStartError.exited ? @tr("{} closed right after starting. Try Check files in the tools.", root.program)
+        : root.phase == Phase.starting ? @tr("Starting…")
         : root.phase == Phase.fetching ? @tr("Checking for updates…")
         : root.phase == Phase.checking ? @tr("Checking files… {}/{}", root.done, root.total)
         : root.phase == Phase.downloading ? @tr("Downloading {}/{}  ({} / {})  ·  {}", root.done, root.total, root.bytes-done, root.bytes-total, root.current-file)
@@ -54,7 +69,14 @@ export component MainWindow inherits Window {
 
     // First-run install location
     in-out property <string> install-dir;
-    in property <string> install-dir-error;
+    in property <InstallError> install-error;
+    property <string> install-error-text:
+        root.install-error == InstallError.not-absolute ? @tr("Enter a full path, e.g. {}.", root.install-dir-example)
+        : root.install-error == InstallError.no-permission ? @tr("No permission to write to this folder. Choose another one.")
+        : root.install-error == InstallError.failed ? @tr("Could not install to this folder. Choose another one.")
+        : "";
+    // Shown in the "full path" hint.
+    in property <string> install-dir-example;
     in-out property <bool> create-shortcut: true;
 
     // Tools: folders "Clear cache" deletes, as shown to the player
@@ -348,8 +370,8 @@ export component MainWindow inherits Window {
             }
         }
 
-        if root.install-dir-error != "": Text {
-            text: root.install-dir-error;
+        if root.install-error-text != "": Text {
+            text: root.install-error-text;
             color: Brand.error;
             font-size: 13px;
             wrap: word-wrap;
@@ -379,7 +401,7 @@ export component MainWindow inherits Window {
             PlayButton {
                 width: 120px;
                 text: @tr("Install");
-                enabled: root.install-dir-error == "" && root.install-dir != "";
+                enabled: root.install-error == InstallError.none && root.install-dir != "";
                 clicked => { root.install(); }
             }
         }

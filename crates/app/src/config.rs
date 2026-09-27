@@ -6,6 +6,10 @@ use std::path::PathBuf;
 /// host before building for a server.
 const MANIFEST_URL: &str = "https://patch.example.org/version.json";
 
+/// Program the PLAY button starts, relative to the game folder. On Linux a
+/// Windows `.exe` runs through Wine.
+pub const GAME_PROGRAM: &str = "Wow.exe";
+
 /// Files downloaded at the same time. One by one: parallel connections from
 /// every player would saturate the patch host.
 pub const DOWNLOAD_CONCURRENCY: usize = 1;

@@ -2,7 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod game;
 mod mock;
+mod setup;
 mod updater;
 
 use slint::winit_030::WinitWindowAccessor;
@@ -14,17 +16,29 @@ slint::include_modules!();
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ui = MainWindow::new()?;
     ui.set_version(env!("CARGO_PKG_VERSION").into());
+    ui.set_program(config::GAME_PROGRAM.into());
 
     match std::env::var("MOCK") {
         Ok(state) => mock::apply(&ui, &state),
         Err(_) => {
             let updater = Updater::new()?;
-            updater.start(&ui, false);
+            if setup::needed() {
+                setup::show(&ui, updater.clone());
+            } else {
+                setup::finish_move();
+                updater.start(&ui, false);
+            }
 
             let (weak, u) = (ui.as_weak(), updater.clone());
             ui.on_retry(move || {
                 if let Some(ui) = weak.upgrade() {
                     u.start(&ui, false);
+                }
+            });
+            let weak = ui.as_weak();
+            ui.on_play(move || {
+                if let Some(ui) = weak.upgrade() {
+                    game::play(&ui);
                 }
             });
             let weak = ui.as_weak();

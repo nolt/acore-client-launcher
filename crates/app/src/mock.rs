@@ -1,15 +1,18 @@
 //! Fixed screen states for screenshots (`MOCK=<state>`), no network involved.
 
-use crate::{Failure, MainWindow, Overlay, Phase};
+use crate::{Failure, GameStartError, InstallError, MainWindow, Overlay, Phase};
 
 pub fn apply(ui: &MainWindow, state: &str) {
     ui.set_install_dir("/home/gracz/Games/AzerothCore".into());
+    ui.set_install_dir_example("/home/gracz/Games/AzerothCore".into());
     ui.set_cache_dirs("Cache/".into());
+    ui.set_program("Wow.exe".into());
     ui.set_phase(Phase::Ready);
     ui.set_progress(1.0);
 
     match state {
         "ready" => {}
+        "no-wine" => ui.set_launch_error(GameStartError::NoWine),
         "error" => {
             ui.set_phase(Phase::Failed);
             ui.set_failure(Failure::Network);
@@ -23,7 +26,7 @@ pub fn apply(ui: &MainWindow, state: &str) {
             ui.set_progress(0.0);
             if state == "install-error" {
                 ui.set_install_dir("C:\\Program Files\\AzerothCore".into());
-                ui.set_install_dir_error("No permission to write to this folder. Choose another one.".into());
+                ui.set_install_error(InstallError::NoPermission);
             }
             ui.set_overlay(Overlay::Install);
         }

@@ -11,6 +11,8 @@ export enum TitleMode { text, logo, none }
 export global Brand {
     // Window text. Enter the server name UPPERCASE for the styled look.
     out property <string> server-name: "AZEROTHCORE";
+    // Plain name for the shortcut and the suggested install folder (~/Games/<name>).
+    out property <string> app-name: "AzerothCore";
     out property <string> subtitle: "GAME CLIENT  ·  3.3.5a";
     out property <TitleMode> title-mode: TitleMode.text;
 
