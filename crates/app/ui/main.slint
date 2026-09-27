@@ -1,0 +1,392 @@
+import { LineEdit, AboutSlint } from "std-widgets.slint";
+import { Brand, TitleMode } from "brand.slint";
+import { PlayButton, GhostButton, LinkButton, CaptionButton, AccentProgressBar, AccentCheckBox, ToolButton, Dialog } from "components.slint";
+
+import "assets/fonts/Cinzel.ttf";
+import "assets/fonts/Inter.ttf";
+
+export { Brand }
+
+export enum Overlay { none, install, tools, confirm-clear-cache, about }
+
+export component MainWindow inherits Window {
+    title: Brand.server-name;
+    no-frame: true;
+    width: Brand.window-width;
+    height: Brand.window-height;
+    background: Brand.window;
+    default-font-family: Brand.body-font;
+    default-font-size: 14px;
+
+    // Main screen
+    in property <string> status-text;
+    in property <string> transfer-info;
+    in property <float> progress;
+    in property <bool> progress-indeterminate;
+    in property <bool> can-play;
+    in property <bool> can-retry;
+    in-out property <Overlay> overlay;
+
+    // First-run install location
+    in-out property <string> install-dir;
+    in property <string> install-dir-error;
+    in-out property <bool> create-shortcut: true;
+
+    // Tools: folders "Clear cache" deletes, as shown to the player
+    // (e.g. "Cache/"); empty hides the button.
+    in property <string> cache-dirs;
+
+    in property <string> version;
+
+    callback start-drag();
+    callback minimise();
+    callback close-window();
+    callback play();
+    callback retry();
+    callback browse-install-dir();
+    callback install-dir-edited(string);
+    callback install();
+    callback clear-cache();
+    callback verify-files();
+    callback open-game-dir();
+
+    // Background art (swap ui/assets/background.jpg to rebrand).
+    Image {
+        source: @image-url("assets/background.jpg");
+        image-fit: cover;
+        width: parent.width;
+        height: parent.height;
+        y: Brand.background-offset-y;
+    }
+
+    // Light overall dim so the artwork isn't too loud.
+    Rectangle { background: Brand.art-dim; }
+
+    VerticalLayout {
+        // Title bar (drag handle). Content depends on Brand.title-mode.
+        title-bar := Rectangle {
+            height: 150px;
+            background: Brand.title-mode == TitleMode.none ? transparent
+                : @linear-gradient(180deg, #000000cc 0%, #00000000 100%);
+
+            TouchArea {
+                pointer-event(event) => {
+                    if (event.kind == PointerEventKind.down && event.button == PointerEventButton.left) {
+                        root.start-drag();
+                    }
+                }
+            }
+
+            if Brand.title-mode == TitleMode.text: VerticalLayout {
+                alignment: center;
+                padding-top: 22px;
+                spacing: 2px;
+                Text {
+                    text: Brand.server-name;
+                    color: Brand.accent;
+                    font-family: Brand.title-font;
+                    font-size: 38px;
+                    font-weight: 700;
+                    letter-spacing: 6px;
+                    horizontal-alignment: center;
+                    stroke: #00000099;
+                    stroke-width: 1px;
+                }
+                Text {
+                    text: Brand.subtitle;
+                    color: Brand.text-dim;
+                    font-size: 13px;
+                    letter-spacing: 4px;
+                    horizontal-alignment: center;
+                }
+            }
+
+            if Brand.title-mode == TitleMode.logo: Image {
+                source: @image-url("assets/logo.png");
+                image-fit: contain;
+                y: 44px;
+                height: 84px;
+            }
+
+            // Tools (gear): top-left, level with the caption buttons.
+            CaptionButton {
+                x: 8px;
+                y: 6px;
+                clicked => { root.overlay = Overlay.tools; }
+                Path {
+                    width: 13px;
+                    height: 13px;
+                    fill: Brand.accent;
+                    viewbox-width: 24;
+                    viewbox-height: 24;
+                    commands: "M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87c-0.12,0.21-0.08,0.47,0.12,0.61l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z";
+                }
+            }
+
+            HorizontalLayout {
+                x: parent.width - self.preferred-width - 8px;
+                y: 6px;
+                width: self.preferred-width;
+                height: 30px;
+                spacing: 2px;
+
+                CaptionButton {
+                    clicked => { root.minimise(); }
+                    Path {
+                        width: 12px;
+                        height: 12px;
+                        stroke: Brand.accent;
+                        stroke-width: 1.6px;
+                        viewbox-width: 12;
+                        viewbox-height: 12;
+                        commands: "M0 6 L12 6";
+                    }
+                }
+                CaptionButton {
+                    danger: true;
+                    clicked => { root.close-window(); }
+                    Path {
+                        width: 11px;
+                        height: 11px;
+                        stroke: Brand.accent;
+                        stroke-width: 1.6px;
+                        viewbox-width: 11;
+                        viewbox-height: 11;
+                        commands: "M0 0 L11 11 M0 11 L11 0";
+                    }
+                }
+            }
+        }
+
+        // Empty row so the artwork shows through.
+        Rectangle { vertical-stretch: 1; }
+
+        // Bottom panel: status, progress, actions.
+        Rectangle {
+            vertical-stretch: 0;
+            background: Brand.panel;
+
+            Rectangle {
+                y: 0;
+                height: 1px;
+                background: Brand.frame;
+            }
+
+            VerticalLayout {
+                padding-left: 28px;
+                padding-right: 28px;
+                padding-top: 15px;
+                padding-bottom: 20px;
+                spacing: 9px;
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    Text {
+                        text: root.status-text;
+                        color: Brand.text;
+                        wrap: word-wrap;
+                        horizontal-stretch: 1;
+                    }
+
+                    // Download speed and time left, right-aligned; empty when not downloading.
+                    if root.transfer-info != "": Text {
+                        text: root.transfer-info;
+                        color: Brand.text;
+                        horizontal-alignment: right;
+                    }
+                }
+
+                AccentProgressBar {
+                    value: root.progress;
+                    indeterminate: root.progress-indeterminate;
+                }
+
+                HorizontalLayout {
+                    padding-top: 9px;
+                    spacing: 12px;
+
+                    Rectangle { horizontal-stretch: 1; }
+
+                    if root.can-retry: GhostButton {
+                        text: @tr("Retry");
+                        clicked => { root.retry(); }
+                    }
+
+                    PlayButton {
+                        width: 150px;
+                        text: @tr("PLAY");
+                        enabled: root.can-play;
+                        clicked => { root.play(); }
+                    }
+                }
+            }
+        }
+    }
+
+    // Tools overlay (gear): cache, file check, game folder, about.
+    if root.overlay == Overlay.tools: Dialog {
+        title: @tr("TOOLS");
+        panel-width: 460px;
+
+        if root.cache-dirs != "": ToolButton {
+            title: @tr("Clear cache");
+            description: @tr("Deletes {} — the game rebuilds it on the next start.", root.cache-dirs);
+            clicked => { root.overlay = Overlay.confirm-clear-cache; }
+        }
+
+        ToolButton {
+            title: @tr("Check files");
+            description: @tr("Checks every game file and downloads damaged ones again.");
+            clicked => {
+                root.overlay = Overlay.none;
+                root.verify-files();
+            }
+        }
+
+        ToolButton {
+            title: @tr("Open game folder");
+            description: root.install-dir;
+            clicked => { root.open-game-dir(); }
+        }
+
+        HorizontalLayout {
+            padding-top: 4px;
+            spacing: 12px;
+
+            LinkButton {
+                text: @tr("About");
+                clicked => { root.overlay = Overlay.about; }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            GhostButton {
+                text: @tr("Close");
+                clicked => { root.overlay = Overlay.none; }
+            }
+        }
+    }
+
+    // Asked before deleting anything: the launcher never deletes files on its own.
+    if root.overlay == Overlay.confirm-clear-cache: Dialog {
+        title: @tr("CLEAR CACHE");
+
+        Text {
+            text: @tr("Delete {}? Nothing else in the game folder is touched.", root.cache-dirs);
+            color: Brand.text;
+            wrap: word-wrap;
+            horizontal-alignment: center;
+        }
+
+        HorizontalLayout {
+            padding-top: 4px;
+            spacing: 12px;
+            alignment: center;
+
+            GhostButton {
+                text: @tr("Cancel");
+                clicked => { root.overlay = Overlay.tools; }
+            }
+            PlayButton {
+                width: 120px;
+                text: @tr("Delete");
+                clicked => {
+                    root.clear-cache();
+                    root.overlay = Overlay.none;
+                }
+            }
+        }
+    }
+
+    // First run: the launcher is not in a game folder yet. It copies itself to the
+    // chosen folder, starts from there and creates a shortcut.
+    if root.overlay == Overlay.install: Dialog {
+        title: @tr("WHERE TO INSTALL");
+        panel-width: 500px;
+
+        Text {
+            text: @tr("Choose a folder for the game. The launcher moves itself there and downloads the game files. A folder that already has the game is fine — only missing or outdated files are downloaded.");
+            color: Brand.text-dim;
+            wrap: word-wrap;
+            horizontal-alignment: center;
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            LineEdit {
+                text: root.install-dir;
+                placeholder-text: @tr("Game folder");
+                edited(text) => { root.install-dir-edited(text); }
+            }
+            GhostButton {
+                text: @tr("Browse…");
+                clicked => { root.browse-install-dir(); }
+            }
+        }
+
+        if root.install-dir-error != "": Text {
+            text: root.install-dir-error;
+            color: Brand.error;
+            font-size: 13px;
+            wrap: word-wrap;
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            AccentCheckBox {
+                checked <=> root.create-shortcut;
+            }
+            Text {
+                text: @tr("Create a shortcut on the desktop and in the menu");
+                color: Brand.text;
+                vertical-alignment: center;
+            }
+        }
+
+        HorizontalLayout {
+            padding-top: 4px;
+            spacing: 12px;
+            alignment: end;
+
+            GhostButton {
+                text: @tr("Cancel");
+                clicked => { root.close-window(); }
+            }
+            PlayButton {
+                width: 120px;
+                text: @tr("Install");
+                enabled: root.install-dir-error == "" && root.install-dir != "";
+                clicked => { root.install(); }
+            }
+        }
+    }
+
+    // About overlay: the Slint royalty-free licence requires this attribution.
+    if root.overlay == Overlay.about: Dialog {
+        title: @tr("ABOUT");
+
+        Text {
+            text: Brand.server-name + " Launcher  " + root.version;
+            color: Brand.text;
+            horizontal-alignment: center;
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            AboutSlint { width: 220px; }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            GhostButton {
+                text: @tr("Close");
+                clicked => { root.overlay = Overlay.tools; }
+            }
+        }
+    }
+
+    // Frame painted last, so no background art can cover it.
+    Rectangle {
+        border-color: Brand.frame;
+        border-width: Brand.frame-width;
+    }
+}

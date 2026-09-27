@@ -1,0 +1,224 @@
+import { Brand } from "brand.slint";
+
+// PLAY button: accent gradient, dark label.
+export component PlayButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked();
+
+    min-width: 120px;
+    height: 42px;
+    border-radius: 6px;
+    background: !root.enabled ? Brand.accent-dark.with-alpha(0.33)
+        : touch.has-hover ? Brand.accent-highlight
+        : @linear-gradient(135deg, Brand.accent 0%, Brand.accent-dark 100%);
+
+    Text {
+        text: root.text;
+        color: root.enabled ? Brand.on-accent : Brand.text.with-alpha(0.53);
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Secondary action (Retry, Cancel, Browse…): outline in the accent colour.
+export component GhostButton inherits Rectangle {
+    in property <string> text;
+    callback clicked();
+
+    height: 42px;
+    border-radius: 6px;
+    border-width: 1.5px;
+    border-color: Brand.accent;
+    background: touch.has-hover ? Brand.accent.with-alpha(0.13) : transparent;
+
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 18px;
+        Text {
+            text: root.text;
+            color: touch.has-hover ? Brand.accent-highlight : Brand.accent;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Borderless dim text action ("About" in the tools overlay).
+export component LinkButton inherits Rectangle {
+    in property <string> text;
+    callback clicked();
+
+    HorizontalLayout {
+        padding: 4px;
+        Text {
+            text: root.text;
+            font-size: 12px;
+            color: touch.has-hover ? Brand.accent : Brand.text-dim;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Window caption button (tools / minimise / close) with an accent icon.
+export component CaptionButton inherits Rectangle {
+    in property <bool> danger;
+    callback clicked();
+
+    width: 40px;
+    height: 30px;
+    border-radius: 6px;
+    background: !touch.has-hover ? transparent : root.danger ? #c0392b66 : Brand.accent.with-alpha(0.2);
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+
+    @children
+}
+
+// Progress bar in the accent colour over a dark track; `value` is 0..1.
+export component AccentProgressBar inherits Rectangle {
+    in property <float> value;
+    in property <bool> indeterminate;
+
+    height: 14px;
+    border-radius: 7px;
+    background: #00000055;
+    clip: true;
+
+    Rectangle {
+        property <float> phase: mod(animation-tick(), 1400ms) / 1400ms;
+        width: root.indeterminate ? root.width * 0.3 : root.width * clamp(root.value, 0, 1);
+        x: root.indeterminate ? self.phase * (root.width + self.width) - self.width : 0;
+        height: 100%;
+        border-radius: 7px;
+        background: @linear-gradient(90deg, Brand.accent 0%, Brand.accent-dark 100%);
+    }
+}
+
+// Modal overlay: dims the window, shows a centred framed panel.
+export component Dialog inherits Rectangle {
+    in property <string> title;
+    in property <length> panel-width: 430px;
+
+    background: #000000cc;
+
+    // Swallow clicks so nothing behind the dialog reacts.
+    TouchArea { }
+
+    Rectangle {
+        width: root.panel-width;
+        height: self.preferred-height;
+        background: Brand.panel;
+        border-color: Brand.frame;
+        border-width: 1px;
+        border-radius: 8px;
+
+        VerticalLayout {
+            padding-left: 30px;
+            padding-right: 30px;
+            padding-top: 24px;
+            padding-bottom: 24px;
+            spacing: 16px;
+
+            Text {
+                text: root.title;
+                color: Brand.accent;
+                font-family: Brand.title-font;
+                font-size: 20px;
+                font-weight: 700;
+                letter-spacing: 3px;
+                horizontal-alignment: center;
+            }
+
+            @children
+        }
+    }
+}
+
+// Full-width action card: title plus a dim description (tools overlay).
+export component ToolButton inherits Rectangle {
+    in property <string> title;
+    in property <string> description;
+    callback clicked();
+
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: touch.has-hover ? Brand.accent : Brand.frame;
+    background: touch.has-hover ? Brand.accent.with-alpha(0.2) : Brand.accent.with-alpha(0.08);
+
+    VerticalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        spacing: 3px;
+
+        Text {
+            text: root.title;
+            color: Brand.accent;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        Text {
+            text: root.description;
+            color: Brand.text-dim;
+            font-size: 12px;
+            wrap: word-wrap;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Check box drawn in the accent colour.
+export component AccentCheckBox inherits Rectangle {
+    in-out property <bool> checked;
+
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border-width: 1.5px;
+    border-color: Brand.accent;
+    background: root.checked ? @linear-gradient(135deg, Brand.accent 0%, Brand.accent-dark 100%)
+        : touch.has-hover ? Brand.accent.with-alpha(0.13) : transparent;
+
+    if root.checked: Path {
+        width: 12px;
+        height: 12px;
+        stroke: Brand.on-accent;
+        stroke-width: 2px;
+        viewbox-width: 12;
+        viewbox-height: 12;
+        commands: "M1 6 L4.5 9.5 L11 2.5";
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.checked = !root.checked; }
+    }
+}

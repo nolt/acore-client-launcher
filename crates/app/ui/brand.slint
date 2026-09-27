@@ -1,0 +1,43 @@
+// ============================================================================
+// BRANDING - edit this file (and the files in ui/assets/) to skin the launcher
+// for your server, then rebuild. Nothing here touches the launcher's logic.
+// ============================================================================
+
+// What shows at the top of the window:
+//   text = server-name + subtitle, logo = ui/assets/logo.png,
+//   none = nothing (use when the background art already contains the title).
+export enum TitleMode { text, logo, none }
+
+export global Brand {
+    // Window text. Enter the server name UPPERCASE for the styled look.
+    out property <string> server-name: "AZEROTHCORE";
+    out property <string> subtitle: "GAME CLIENT  ·  3.3.5a";
+    out property <TitleMode> title-mode: TitleMode.text;
+
+    // Window size (logical pixels; the OS scales for DPI).
+    out property <length> window-width: 760px;
+    out property <length> window-height: 475px;
+
+    // Vertical nudge of the background art. Negative moves it up.
+    out property <length> background-offset-y: -30px;
+
+    // Window frame width (0 = none); colour is `frame` below.
+    out property <length> frame-width: 2px;
+
+    // Colours.
+    out property <color> accent: #7dd3fc;           // titles, icons, frame
+    out property <color> accent-dark: #2f8fc4;      // gradient end
+    out property <color> accent-highlight: #a5e3fd; // hover
+    out property <color> on-accent: #04121c;        // text on the PLAY button
+    out property <color> text: #e0e0e0;
+    out property <color> text-dim: #9a9a9a;
+    out property <color> panel: #08101af2;          // bottom panel and dialogs
+    out property <color> window: #05080d;           // behind the art while it loads
+    out property <color> art-dim: #00000040;        // overall dim over the art
+    out property <color> frame: #7dd3fc99;          // window frame and panel edges
+    out property <color> error: #e74c3c;
+
+    // Fonts (embedded, see main.slint).
+    out property <string> title-font: "Cinzel";
+    out property <string> body-font: "Inter";
+}
