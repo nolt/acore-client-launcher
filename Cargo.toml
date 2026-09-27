@@ -12,3 +12,11 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+opt-level = "s"
+
+# Hashing and TLS stay tuned for speed: the launcher hashes gigabytes of game files.
+[profile.release.package.sha2]
+opt-level = 3
+
+[profile.release.package.ring]
+opt-level = 3

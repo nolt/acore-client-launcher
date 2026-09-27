@@ -8,7 +8,14 @@ rust-version.workspace = true
 dirs = "7"
 launcher-core = { path = "../core" }
 rfd = { version = "0.17", default-features = false, features = ["xdg-portal"] }
-slint = { version = "1.18", features = ["unstable-winit-030"] }
+slint = { version = "1.18", default-features = false, features = [
+    "std",
+    "compat-1-18",
+    "backend-winit",
+    "renderer-femtovg",
+    "renderer-software",
+    "unstable-winit-030",
+] }
 tokio = { version = "1", features = ["rt-multi-thread"] }
 
 [build-dependencies]
