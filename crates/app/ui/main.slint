@@ -11,7 +11,7 @@ export enum Overlay { none, install, tools, confirm-clear-cache, about }
 
 // What the updater is doing; the status line is built from it here, so every
 // player-facing text stays in .slint files (translatable with @tr).
-export enum Phase { starting, fetching, checking, downloading, ready, updated, failed }
+export enum Phase { starting, launcher-update, fetching, checking, downloading, ready, updated, failed }
 
 // Why the update failed, for a message the player can act on.
 export enum Failure { network, server, disk, manifest }
@@ -62,6 +62,7 @@ export component MainWindow inherits Window {
         : root.notice == Notice.cache-cleared && root.can-play ? @tr("Cache cleared.")
         : root.notice == Notice.cache-failed && root.can-play ? @tr("Could not clear the cache. Close the game and try again.")
         : root.phase == Phase.starting ? @tr("Starting…")
+        : root.phase == Phase.launcher-update ? @tr("Updating the launcher…")
         : root.phase == Phase.fetching ? @tr("Checking for updates…")
         : root.phase == Phase.checking ? @tr("Checking files… {}/{}", root.done, root.total)
         : root.phase == Phase.downloading ? @tr("Downloading {}/{}  ({} / {})  ·  {}", root.done, root.total, root.bytes-done, root.bytes-total, root.current-file)

@@ -4,6 +4,7 @@
 mod config;
 mod game;
 mod mock;
+mod self_update;
 mod setup;
 mod tools;
 mod updater;

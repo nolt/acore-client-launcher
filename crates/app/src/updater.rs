@@ -7,12 +7,14 @@ use launcher_core::{Error, Progress, UpdateOptions, Url, format, update};
 use slint::ComponentHandle;
 use tokio::runtime::Runtime;
 
-use crate::{Failure, GameStartError, MainWindow, Notice, Phase, config};
+use crate::{Failure, GameStartError, MainWindow, Notice, Phase, config, self_update};
 
 #[derive(Clone)]
 pub struct Updater {
     runtime: Arc<Runtime>,
     running: Arc<AtomicBool>,
+    /// The launcher itself is checked once per start, before the first update.
+    launcher_checked: Arc<AtomicBool>,
 }
 
 impl Updater {
@@ -20,6 +22,7 @@ impl Updater {
         Ok(Updater {
             runtime: Arc::new(Runtime::new()?),
             running: Arc::new(AtomicBool::new(false)),
+            launcher_checked: Arc::new(AtomicBool::new(!self_update::wanted())),
         })
     }
 
@@ -37,7 +40,11 @@ impl Updater {
 
         let weak = ui.as_weak();
         let running = self.running.clone();
+        let launcher_checked = self.launcher_checked.clone();
         self.runtime.spawn(async move {
+            if !launcher_checked.swap(true, Ordering::SeqCst) && self_update::run(&weak).await {
+                return;
+            }
             let result = match Url::parse(&config::manifest_url()) {
                 Ok(manifest_url) => {
                     let options = UpdateOptions {

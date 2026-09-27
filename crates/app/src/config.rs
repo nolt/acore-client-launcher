@@ -6,6 +6,10 @@ use std::path::PathBuf;
 /// host before building for a server.
 const MANIFEST_URL: &str = "https://patch.example.org/version.json";
 
+/// Launcher self-update info, relative to the manifest URL (see
+/// `acore-launcher-cli launcher`). Missing on the host = no self-update.
+pub const LAUNCHER_INFO: &str = "launcher.json";
+
 /// Program the PLAY button starts, relative to the game folder. On Linux a
 /// Windows `.exe` runs through Wine.
 pub const GAME_PROGRAM: &str = "Wow.exe";
