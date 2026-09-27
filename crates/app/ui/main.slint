@@ -9,6 +9,13 @@ export { Brand }
 
 export enum Overlay { none, install, tools, confirm-clear-cache, about }
 
+// What the updater is doing; the status line is built from it here, so every
+// player-facing text stays in .slint files (translatable with @tr).
+export enum Phase { starting, fetching, checking, downloading, ready, updated, failed }
+
+// Why the update failed, for a message the player can act on.
+export enum Failure { network, server, disk, manifest }
+
 export component MainWindow inherits Window {
     title: Brand.server-name;
     no-frame: true;
@@ -18,13 +25,31 @@ export component MainWindow inherits Window {
     default-font-family: Brand.body-font;
     default-font-size: 14px;
 
-    // Main screen
-    in property <string> status-text;
-    in property <string> transfer-info;
-    in property <float> progress;
-    in property <bool> progress-indeterminate;
-    in property <bool> can-play;
-    in property <bool> can-retry;
+    // Update state
+    in property <Phase> phase;
+    in property <Failure> failure;
+    in property <int> done;           // checking: files checked; downloading: file number
+    in property <int> total;          // files to check / to download
+    in property <string> bytes-done;  // "148.2 MB"
+    in property <string> bytes-total;
+    in property <string> current-file;
+    in property <string> transfer-info;  // "4.2 MB/s  ·  ~40 s"
+    in property <string> game-version;
+    in property <float> progress;     // 0..1
+
+    property <bool> can-play: root.phase == Phase.ready || root.phase == Phase.updated;
+    property <bool> can-retry: root.phase == Phase.failed;
+    property <string> status-text:
+        root.phase == Phase.starting ? @tr("Starting…")
+        : root.phase == Phase.fetching ? @tr("Checking for updates…")
+        : root.phase == Phase.checking ? @tr("Checking files… {}/{}", root.done, root.total)
+        : root.phase == Phase.downloading ? @tr("Downloading {}/{}  ({} / {})  ·  {}", root.done, root.total, root.bytes-done, root.bytes-total, root.current-file)
+        : root.phase == Phase.ready ? @tr("Up to date — ready to play.")
+        : root.phase == Phase.updated ? @tr("Updated to {} — ready to play.", root.game-version)
+        : root.failure == Failure.server ? @tr("The update server is missing a file. Try again later.")
+        : root.failure == Failure.disk ? @tr("Could not write to the game folder. Close the game and try again.")
+        : root.failure == Failure.manifest ? @tr("The update server sent an invalid file list. Try again later.")
+        : @tr("Could not update. Check your connection and try again.");
     in-out property <Overlay> overlay;
 
     // First-run install location
@@ -199,7 +224,7 @@ export component MainWindow inherits Window {
 
                 AccentProgressBar {
                     value: root.progress;
-                    indeterminate: root.progress-indeterminate;
+                    indeterminate: root.phase == Phase.starting || root.phase == Phase.fetching;
                 }
 
                 HorizontalLayout {

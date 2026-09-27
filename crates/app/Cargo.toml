@@ -5,7 +5,9 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+launcher-core = { path = "../core" }
 slint = { version = "1.18", features = ["unstable-winit-030"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
 
 [build-dependencies]
 slint-build = "1.18"
