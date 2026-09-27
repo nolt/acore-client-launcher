@@ -5,6 +5,7 @@ use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
+use crate::launch::LOCAL_CONFIG;
 use crate::state::STATE_FILE;
 
 /// `version.json` on the patch host: every file the game folder should have.
@@ -107,7 +108,7 @@ fn check_relative_path(path: &str) -> Result<()> {
     }
     // Case-insensitive: on Windows and macOS "A.PART" is the same file as "a.part".
     let lower = path.to_ascii_lowercase();
-    if lower == STATE_FILE || lower.ends_with(".part") {
+    if lower == STATE_FILE || lower == LOCAL_CONFIG || lower.ends_with(".part") {
         return invalid("is reserved for the launcher");
     }
     Ok(())
@@ -146,6 +147,7 @@ mod tests {
             "a//b",
             "./a",
             STATE_FILE,
+            "launcher.local.json",
             "a.part",
             "Data/A.PART",
         ] {
