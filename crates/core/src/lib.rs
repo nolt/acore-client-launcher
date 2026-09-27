@@ -4,6 +4,7 @@
 //! patch host lists, never deletes game files and ignores anything the manifest
 //! does not mention.
 
+mod cache;
 mod download;
 mod error;
 pub mod format;
@@ -17,6 +18,7 @@ mod shortcut;
 mod state;
 mod update;
 
+pub use cache::clear_cache;
 pub use error::{Error, Result};
 pub use generate::{GenerateOptions, Generated, generate, today_version};
 pub use install::{check_writable, install, remove_original};

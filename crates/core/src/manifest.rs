@@ -94,7 +94,7 @@ impl ManifestFile {
 }
 
 /// A manifest path must stay inside the game folder on every OS.
-fn check_relative_path(path: &str) -> Result<()> {
+pub(crate) fn check_relative_path(path: &str) -> Result<()> {
     let invalid = |why: &str| Err(Error::Manifest(format!("path {path:?} {why}")));
     if path.is_empty() {
         return invalid("is empty");
