@@ -5,13 +5,14 @@ use std::time::Duration;
 use launcher_core::{LaunchError, check_started, launch};
 use slint::ComponentHandle;
 
-use crate::{GameStartError, MainWindow, config};
+use crate::{GameStartError, MainWindow, Notice, config};
 
 /// A game still running after this counts as started.
 const START_GRACE: Duration = Duration::from_secs(3);
 
 pub fn play(ui: &MainWindow) {
     ui.set_launch_error(GameStartError::None);
+    ui.set_notice(Notice::None);
     let mut child = match launch(&config::game_dir(), config::GAME_PROGRAM) {
         Ok(child) => child,
         Err(e) => return show_error(ui, &e),

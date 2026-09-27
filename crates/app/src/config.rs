@@ -10,6 +10,10 @@ const MANIFEST_URL: &str = "https://patch.example.org/version.json";
 /// Windows `.exe` runs through Wine.
 pub const GAME_PROGRAM: &str = "Wow.exe";
 
+/// Folders "Clear cache" deletes, relative to the game folder. Empty hides
+/// the button.
+pub const CACHE_DIRS: &[&str] = &["Cache"];
+
 /// Files downloaded at the same time. One by one: parallel connections from
 /// every player would saturate the patch host.
 pub const DOWNLOAD_CONCURRENCY: usize = 1;

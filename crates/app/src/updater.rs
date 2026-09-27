@@ -7,7 +7,7 @@ use launcher_core::{Error, Progress, UpdateOptions, Url, format, update};
 use slint::ComponentHandle;
 use tokio::runtime::Runtime;
 
-use crate::{Failure, GameStartError, MainWindow, Phase, config};
+use crate::{Failure, GameStartError, MainWindow, Notice, Phase, config};
 
 #[derive(Clone)]
 pub struct Updater {
@@ -31,6 +31,7 @@ impl Updater {
         }
         ui.set_phase(Phase::Starting);
         ui.set_launch_error(GameStartError::None);
+        ui.set_notice(Notice::None);
         ui.set_progress(0.0);
         ui.set_transfer_info("".into());
 

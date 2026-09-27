@@ -5,6 +5,7 @@ mod config;
 mod game;
 mod mock;
 mod setup;
+mod tools;
 mod updater;
 
 use slint::winit_030::WinitWindowAccessor;
@@ -17,6 +18,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ui = MainWindow::new()?;
     ui.set_version(env!("CARGO_PKG_VERSION").into());
     ui.set_program(config::GAME_PROGRAM.into());
+    ui.set_cache_dirs(tools::cache_dirs_label().into());
+    ui.set_install_dir(config::game_dir().to_string_lossy().as_ref().into());
 
     match std::env::var("MOCK") {
         Ok(state) => mock::apply(&ui, &state),
@@ -41,6 +44,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     game::play(&ui);
                 }
             });
+            let weak = ui.as_weak();
+            ui.on_clear_cache(move || {
+                if let Some(ui) = weak.upgrade() {
+                    tools::clear(&ui);
+                }
+            });
+            ui.on_open_game_dir(tools::open_game_dir);
             let weak = ui.as_weak();
             ui.on_verify_files(move || {
                 if let Some(ui) = weak.upgrade() {

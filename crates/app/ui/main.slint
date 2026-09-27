@@ -19,6 +19,9 @@ export enum Failure { network, server, disk, manifest }
 // Why PLAY did not start the game; none once it did or after the next update.
 export enum GameStartError { none, missing, no-wine, failed, exited }
 
+// Result of a tool, shown in the status line until the next update or PLAY.
+export enum Notice { none, cache-cleared, cache-failed }
+
 // Why the chosen install folder cannot be used.
 export enum InstallError { none, not-absolute, no-permission, failed }
 
@@ -44,7 +47,8 @@ export component MainWindow inherits Window {
     in property <string> game-version;
     in property <float> progress;     // 0..1
     in property <GameStartError> launch-error;
-    in property <bool> game-starting;  // PLAY pressed, waiting to see the game keeps running
+    in property <bool> game-starting;
+    in property <Notice> notice;  // PLAY pressed, waiting to see the game keeps running
     in property <string> program;     // what PLAY starts, e.g. "Wow.exe"
 
     property <bool> can-play: !root.game-starting && (root.phase == Phase.ready || root.phase == Phase.updated);
@@ -55,6 +59,8 @@ export component MainWindow inherits Window {
         : root.launch-error == GameStartError.no-wine ? @tr("The game needs Wine. Install it from your distribution's packages and try again.")
         : root.launch-error == GameStartError.failed ? @tr("Could not start {}.", root.program)
         : root.launch-error == GameStartError.exited ? @tr("{} closed right after starting. Try Check files in the tools.", root.program)
+        : root.notice == Notice.cache-cleared && root.can-play ? @tr("Cache cleared.")
+        : root.notice == Notice.cache-failed && root.can-play ? @tr("Could not clear the cache. Close the game and try again.")
         : root.phase == Phase.starting ? @tr("Starting…")
         : root.phase == Phase.fetching ? @tr("Checking for updates…")
         : root.phase == Phase.checking ? @tr("Checking files… {}/{}", root.done, root.total)
