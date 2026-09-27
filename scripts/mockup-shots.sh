@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 # Builds the launcher in Docker and saves a screenshot of every mockup state
-# to docs/mockups/. Runs headless (Xvfb), nothing is installed on the host.
+# to docs/mockups/ (docs/mockups/<lang>/ with UI_LANG=pl, etc.). Runs headless
+# (Xvfb), nothing is installed on the host.
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 image=acore-launcher-build
+lang="${UI_LANG:-}"
+shots="docs/mockups${lang:+/$lang}"
 
 echo "Preparing the build environment (the first run takes a few minutes)..."
 docker build -q -t "$image" -f "$repo/docker/Dockerfile.build" "$repo/docker" >/dev/null
 
-docker run --rm -v "$repo:/src" -w /src -e CARGO_HOME=/src/target/cargo-home "$image" bash -euo pipefail -c '
+docker run --rm -v "$repo:/src" -w /src -e CARGO_HOME=/src/target/cargo-home \
+    -e LANG="${lang:+$lang.UTF-8}" -e SHOTS="$shots" "$image" bash -euo pipefail -c '
     cargo build --release
-    mkdir -p docs/mockups
+    mkdir -p "$SHOTS"
     Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
     # FemtoVG (OpenGL, here Mesa llvmpipe) is what players get; the software
     # renderer fallback draws gradient fills without rounded corners.
@@ -21,10 +25,10 @@ docker run --rm -v "$repo:/src" -w /src -e CARGO_HOME=/src/target/cargo-home "$i
         MOCK=$state ./target/release/acore-launcher &
         pid=$!
         sleep 3
-        import -window root -crop 760x475+0+0 +repage "docs/mockups/$state.png"
+        import -window root -crop 760x475+0+0 +repage "$SHOTS/$state.png"
         kill $pid
         wait $pid 2>/dev/null || true
     done
     chown -R '"$(id -u):$(id -g)"' target docs/mockups
 '
-ls -la "$repo/docs/mockups"
+ls -la "$repo/$shots"
