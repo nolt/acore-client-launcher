@@ -31,7 +31,7 @@ pub struct UpdateSummary {
     pub bytes_downloaded: u64,
 }
 
-type Report = Arc<dyn Fn(Progress) + Send + Sync>;
+pub(crate) type Report = Arc<dyn Fn(Progress) + Send + Sync>;
 
 /// Brings the game folder in line with the manifest: downloads missing and
 /// outdated files, never deletes anything, ignores files the manifest does not list.
@@ -97,7 +97,7 @@ pub async fn update(
     }
 }
 
-fn http_client() -> Result<Client> {
+pub(crate) fn http_client() -> Result<Client> {
     // reqwest is built without a bundled crypto provider; ring cross-compiles
     // to Windows without extra tools.
     static PROVIDER: Once = Once::new();
@@ -202,7 +202,7 @@ struct SharedInner {
 }
 
 impl Shared {
-    fn new(files_total: usize, bytes_total: u64, report: Report) -> Self {
+    pub(crate) fn new(files_total: usize, bytes_total: u64, report: Report) -> Self {
         Shared {
             report,
             files_total,
@@ -218,12 +218,12 @@ impl Shared {
         }
     }
 
-    fn start_file(&self, path: &str) {
+    pub(crate) fn start_file(&self, path: &str) {
         self.inner.lock().unwrap().active.push(path.to_owned());
         self.emit(true);
     }
 
-    fn finish_file(&self, path: &str) {
+    pub(crate) fn finish_file(&self, path: &str) {
         self.finished.fetch_add(1, Ordering::Relaxed);
         self.inner.lock().unwrap().active.retain(|p| p != path);
         self.emit(true);
