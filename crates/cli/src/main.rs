@@ -1,16 +1,23 @@
 //! Command-line companion of the launcher: builds manifests for the patch host
 //! and runs an update without the GUI.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use launcher_core::{GenerateOptions, Progress, UpdateOptions, Url, format, generate, today_version, update};
+use launcher_core::{
+    GenerateOptions, LauncherInfo, ManifestFile, Progress, UpdateOptions, Url, format, generate, sha256_file,
+    today_version, update,
+};
 
 const USAGE: &str = "\
 Usage:
   acore-launcher-cli manifest <game-files-dir> [--output FILE] [--version V] [--base-url URL]
       Writes version.json (default: <game-files-dir>/version.json) listing every
       file with its SHA-256. Hidden files and folders are left out.
+  acore-launcher-cli launcher <version> [--linux FILE] [--windows FILE] [--output FILE]
+      Writes launcher.json (default: next to the first binary) announcing launcher
+      <version> for self-update. Binary paths are stored relative to launcher.json;
+      upload them with the same layout, next to version.json.
   acore-launcher-cli update <manifest-url> <game-dir> [--full-check]
       Downloads missing and outdated files into <game-dir>, like the launcher does.";
 
@@ -18,6 +25,7 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let result = match args.first().map(String::as_str) {
         Some("manifest") => manifest(&args[1..]),
+        Some("launcher") => launcher_info(&args[1..]),
         Some("update") => run_update(&args[1..]),
         _ => Err(USAGE.to_owned()),
     };
@@ -102,6 +110,68 @@ fn manifest(args: &[String]) -> Result<(), String> {
         format::bytes(total)
     );
     Ok(())
+}
+
+fn launcher_info(args: &[String]) -> Result<(), String> {
+    let args = Args::parse(args, &["--linux", "--windows", "--output"], &[])?;
+    let [version] = args.positional.as_slice() else {
+        return Err(USAGE.to_owned());
+    };
+    let binaries: Vec<(&str, PathBuf)> = [("linux-x64", "--linux"), ("windows-x64", "--windows")]
+        .into_iter()
+        .filter_map(|(platform, option)| args.value(option).map(|p| (platform, PathBuf::from(p))))
+        .collect();
+    let Some((_, first)) = binaries.first() else {
+        return Err(format!("give at least one of --linux, --windows\n\n{USAGE}"));
+    };
+    let output = args
+        .value("--output")
+        .map_or_else(|| first.with_file_name("launcher.json"), PathBuf::from);
+
+    let mut files = std::collections::BTreeMap::new();
+    for (platform, path) in &binaries {
+        let name = relative_url_path(path, &output)?;
+        let size = std::fs::metadata(path)
+            .map_err(|e| format!("{}: {e}", path.display()))?
+            .len();
+        let hash = sha256_file(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        files.insert(
+            platform.to_string(),
+            ManifestFile {
+                path: name,
+                hash,
+                size,
+            },
+        );
+    }
+    let info = LauncherInfo {
+        version: version.clone(),
+        files,
+    };
+    let json = serde_json::to_string_pretty(&info).map_err(|e| e.to_string())?;
+    std::fs::write(&output, json + "\n").map_err(|e| format!("{}: {e}", output.display()))?;
+    println!(
+        "{}: launcher {version} for {}",
+        output.display(),
+        info.files.keys().cloned().collect::<Vec<_>>().join(", ")
+    );
+    Ok(())
+}
+
+/// `binary` as a URL path relative to `output`: "launcher/acore-launcher.exe"
+/// when it sits in a subfolder, else just the file name.
+fn relative_url_path(binary: &Path, output: &Path) -> Result<String, String> {
+    let base = output.parent().unwrap_or(Path::new(""));
+    let relative = std::path::absolute(binary)
+        .ok()
+        .zip(std::path::absolute(base).ok())
+        .and_then(|(b, o)| b.strip_prefix(o).ok().map(Path::to_path_buf))
+        .or_else(|| binary.file_name().map(PathBuf::from))
+        .ok_or_else(|| format!("{}: not a file", binary.display()))?;
+    let parts: Option<Vec<&str>> = relative.components().map(|c| c.as_os_str().to_str()).collect();
+    parts
+        .map(|p| p.join("/"))
+        .ok_or_else(|| format!("{}: not a UTF-8 path", binary.display()))
 }
 
 fn run_update(args: &[String]) -> Result<(), String> {
