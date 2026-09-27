@@ -1,0 +1,228 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2026-09-27 23:07+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: crates/app/ui/main.slint:57
+msgctxt "MainWindow"
+msgid "Starting {}…"
+msgstr ""
+
+#: crates/app/ui/main.slint:58
+msgctxt "MainWindow"
+msgid "{} is missing from the game folder. Use Check files in the tools."
+msgstr ""
+
+#: crates/app/ui/main.slint:59
+msgctxt "MainWindow"
+msgid ""
+"The game needs Wine. Install it from your distribution's packages and try "
+"again."
+msgstr ""
+
+#: crates/app/ui/main.slint:60
+msgctxt "MainWindow"
+msgid "Could not start {}."
+msgstr ""
+
+#: crates/app/ui/main.slint:61
+msgctxt "MainWindow"
+msgid "{} closed right after starting. Try Check files in the tools."
+msgstr ""
+
+#: crates/app/ui/main.slint:62
+msgctxt "MainWindow"
+msgid "Cache cleared."
+msgstr ""
+
+#: crates/app/ui/main.slint:63
+msgctxt "MainWindow"
+msgid "Could not clear the cache. Close the game and try again."
+msgstr ""
+
+#: crates/app/ui/main.slint:64
+msgctxt "MainWindow"
+msgid "Starting…"
+msgstr ""
+
+#: crates/app/ui/main.slint:65
+msgctxt "MainWindow"
+msgid "Updating the launcher…"
+msgstr ""
+
+#: crates/app/ui/main.slint:66
+msgctxt "MainWindow"
+msgid "Checking for updates…"
+msgstr ""
+
+#: crates/app/ui/main.slint:67
+msgctxt "MainWindow"
+msgid "Checking files… {}/{}"
+msgstr ""
+
+#: crates/app/ui/main.slint:68
+msgctxt "MainWindow"
+msgid "Downloading {}/{}  ({} / {})  ·  {}"
+msgstr ""
+
+#: crates/app/ui/main.slint:69
+msgctxt "MainWindow"
+msgid "Up to date — ready to play."
+msgstr ""
+
+#: crates/app/ui/main.slint:70
+msgctxt "MainWindow"
+msgid "Updated to {} — ready to play."
+msgstr ""
+
+#: crates/app/ui/main.slint:71
+msgctxt "MainWindow"
+msgid "The update server is missing a file. Try again later."
+msgstr ""
+
+#: crates/app/ui/main.slint:72
+msgctxt "MainWindow"
+msgid "Could not write to the game folder. Close the game and try again."
+msgstr ""
+
+#: crates/app/ui/main.slint:73
+msgctxt "MainWindow"
+msgid "The update server sent an invalid file list. Try again later."
+msgstr ""
+
+#: crates/app/ui/main.slint:74
+msgctxt "MainWindow"
+msgid "Could not update. Check your connection and try again."
+msgstr ""
+
+#: crates/app/ui/main.slint:81
+msgctxt "MainWindow"
+msgid "Enter a full path, e.g. {}."
+msgstr ""
+
+#: crates/app/ui/main.slint:82
+msgctxt "MainWindow"
+msgid "No permission to write to this folder. Choose another one."
+msgstr ""
+
+#: crates/app/ui/main.slint:83
+msgctxt "MainWindow"
+msgid "Could not install to this folder. Choose another one."
+msgstr ""
+
+#: crates/app/ui/main.slint:266
+msgctxt "MainWindow"
+msgid "Retry"
+msgstr ""
+
+#: crates/app/ui/main.slint:272
+msgctxt "MainWindow"
+msgid "PLAY"
+msgstr ""
+
+#: crates/app/ui/main.slint:283
+msgctxt "MainWindow"
+msgid "TOOLS"
+msgstr ""
+
+#: crates/app/ui/main.slint:287
+msgctxt "MainWindow"
+msgid "Clear cache"
+msgstr ""
+
+#: crates/app/ui/main.slint:288
+msgctxt "MainWindow"
+msgid "Deletes {} — the game rebuilds it on the next start."
+msgstr ""
+
+#: crates/app/ui/main.slint:293
+msgctxt "MainWindow"
+msgid "Check files"
+msgstr ""
+
+#: crates/app/ui/main.slint:294
+msgctxt "MainWindow"
+msgid "Checks every game file and downloads damaged ones again."
+msgstr ""
+
+#: crates/app/ui/main.slint:302
+msgctxt "MainWindow"
+msgid "Open game folder"
+msgstr ""
+
+#: crates/app/ui/main.slint:312
+msgctxt "MainWindow"
+msgid "About"
+msgstr ""
+
+#: crates/app/ui/main.slint:317 crates/app/ui/main.slint:435
+msgctxt "MainWindow"
+msgid "Close"
+msgstr ""
+
+#: crates/app/ui/main.slint:325
+msgctxt "MainWindow"
+msgid "CLEAR CACHE"
+msgstr ""
+
+#: crates/app/ui/main.slint:328
+msgctxt "MainWindow"
+msgid "Delete {}? Nothing else in the game folder is touched."
+msgstr ""
+
+#: crates/app/ui/main.slint:340 crates/app/ui/main.slint:405
+msgctxt "MainWindow"
+msgid "Cancel"
+msgstr ""
+
+#: crates/app/ui/main.slint:345
+msgctxt "MainWindow"
+msgid "Delete"
+msgstr ""
+
+#: crates/app/ui/main.slint:357
+msgctxt "MainWindow"
+msgid "WHERE TO INSTALL"
+msgstr ""
+
+#: crates/app/ui/main.slint:361
+msgctxt "MainWindow"
+msgid ""
+"Choose a folder for the game. The launcher moves itself there and downloads "
+"the game files. A folder that already has the game is fine — only missing "
+"or outdated files are downloaded."
+msgstr ""
+
+#: crates/app/ui/main.slint:371
+msgctxt "MainWindow"
+msgid "Game folder"
+msgstr ""
+
+#: crates/app/ui/main.slint:375
+msgctxt "MainWindow"
+msgid "Browse…"
+msgstr ""
+
+#: crates/app/ui/main.slint:393
+msgctxt "MainWindow"
+msgid "Create a shortcut on the desktop and in the menu"
+msgstr ""
+
+#: crates/app/ui/main.slint:410
+msgctxt "MainWindow"
+msgid "Install"
+msgstr ""
+
+#: crates/app/ui/main.slint:419
+msgctxt "MainWindow"
+msgid "ABOUT"
+msgstr ""

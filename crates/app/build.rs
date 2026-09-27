@@ -1,5 +1,9 @@
 fn main() {
-    let config = slint_build::CompilerConfiguration::new().with_style("fluent-dark".into());
+    // Translations in lang/<language>/LC_MESSAGES/acore-launcher.po are built in;
+    // Slint picks the one matching the system language.
+    let config = slint_build::CompilerConfiguration::new()
+        .with_style("fluent-dark".into())
+        .with_bundled_translations("lang");
     slint_build::compile_with_config("ui/main.slint", config).expect("Slint build failed");
 
     // Windows: icon, file details and a manifest. asInvoker keeps Windows from
