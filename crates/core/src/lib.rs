@@ -23,7 +23,7 @@ pub use cache::clear_cache;
 pub use error::{Error, Result};
 pub use generate::{GenerateOptions, Generated, generate, today_version};
 pub use hash::sha256_file;
-pub use install::{check_writable, install, remove_original};
+pub use install::{install, remove_original};
 pub use launch::{LaunchError, check_started, launch};
 pub use manifest::{Manifest, ManifestFile};
 pub use progress::Progress;
@@ -33,5 +33,5 @@ pub use self_update::{
     replace_running_launcher,
 };
 pub use shortcut::{Shortcut, create_shortcuts};
-pub use state::{LocalState, STATE_FILE};
+pub use state::LocalState;
 pub use update::{UpdateOptions, UpdateSummary, update};
