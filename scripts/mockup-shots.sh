@@ -13,7 +13,9 @@ docker run --rm -v "$repo:/src" -w /src -e CARGO_HOME=/src/target/cargo-home "$i
     cargo build --release
     mkdir -p docs/mockups
     Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
-    export DISPLAY=:99 SLINT_BACKEND=winit-software SLINT_SCALE_FACTOR=1
+    # FemtoVG (OpenGL, here Mesa llvmpipe) is what players get; the software
+    # renderer fallback draws gradient fills without rounded corners.
+    export DISPLAY=:99 SLINT_BACKEND=winit-femtovg SLINT_SCALE_FACTOR=1
     sleep 1
     for state in downloading ready error install install-error tools clear-cache about; do
         MOCK=$state ./target/release/acore-launcher &
