@@ -109,7 +109,7 @@ z manifestu zostają na dyskach graczy — launcher nigdy nie usuwa plików gry.
 
 Launchera nie obchodzi, czy manifest wymienia całego klienta, czy kilka plików. Jeśli gracze mają
 własnego klienta 3.3.5a, publikuj tylko to, co dodajesz — polską łatkę, `realmlist.wtf`, poprawki
-— i poproś ich, żeby przy instalacji wskazali swój folder z WoW. Launcher pobierze wtedy megabajty
+— i poproś ich, żeby przy instalacji wskazali swój folder z klientem gry. Launcher pobierze wtedy megabajty
 zamiast całego klienta.
 
 ## Wydanie nowego launchera

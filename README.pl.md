@@ -3,9 +3,9 @@
 *[English version](README.md)*
 
 Wieloplatformowy launcher i auto-updater klienta gry dla serwerów
-[AzerothCore](https://www.azerothcore.org/), na Linuksa i Windowsa. Synchronizuje klienta WoW 3.3.5a
+[AzerothCore](https://www.azerothcore.org/), na Linuksa i Windowsa. Synchronizuje klienta gry 3.3.5a
 gracza z Twoim serwerem plików przez HTTP(S), a potem uruchamia grę. Sam launcher nic nie wie
-o WoW: pobiera to, co wymienia manifest, i uruchamia jeden program — polska łatka czy
+o grze: pobiera to, co wymienia manifest, i uruchamia jeden program — polska łatka czy
 `realmlist.wtf` to po prostu kolejny plik.
 
 ![acore-client-launcher — domyślny motyw, pobieranie aktualizacji](docs/assets/downloading.pl.jpg)

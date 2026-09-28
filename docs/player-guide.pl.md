@@ -15,7 +15,7 @@ zainstalować grę:
 
 - Proponuje `~/Games/<serwer>` na Linuksie i `C:\Games\<serwer>` na Windowsie. Możesz wpisać inną
   ścieżkę albo wybrać folder przyciskiem **Przeglądaj…**.
-- **Może to być folder z już zainstalowaną grą** — np. Twój dotychczasowy WoW 3.3.5a. Pobrane
+- **Może to być folder z już zainstalowaną grą** — np. Twój dotychczasowy klient gry 3.3.5a. Pobrane
   zostaną tylko brakujące lub nieaktualne pliki, a dodatki, zrzuty ekranu i ustawienia zostaną.
 - Zostaw zaznaczone **Utwórz skrót**, żeby dostać skrót na pulpicie i w menu Start albo menu
   aplikacji.

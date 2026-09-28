@@ -3,8 +3,8 @@
 *[Wersja polska](README.pl.md)*
 
 Cross-platform game client launcher and auto-updater for [AzerothCore](https://www.azerothcore.org/)
-servers, for Linux and Windows. It keeps the player's WoW 3.3.5a client in sync with your file
-host over HTTP(S), then starts the game. The launcher itself knows nothing about WoW: it
+servers, for Linux and Windows. It keeps the player's 3.3.5a game client in sync with your file
+host over HTTP(S), then starts the game. The launcher itself knows nothing about the game: it
 downloads what a manifest lists and starts one program, so a translation patch or a
 `realmlist.wtf` is just another file.
 

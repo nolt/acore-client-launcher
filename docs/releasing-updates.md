@@ -109,7 +109,7 @@ the manifest stay on players' disks — the launcher never deletes game files.
 
 The launcher does not care whether the manifest lists the whole client or just a few files. If
 players bring their own 3.3.5a client, publish only what you add — the translation patch,
-`realmlist.wtf`, fixes — and tell them to pick their existing WoW folder at the install step.
+`realmlist.wtf`, fixes — and tell them to pick their existing game client folder at the install step.
 The launcher then downloads megabytes instead of the whole client.
 
 ## Releasing a new launcher

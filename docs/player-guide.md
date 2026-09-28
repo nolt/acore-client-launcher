@@ -15,7 +15,7 @@ to install the game:
 
 - It suggests `~/Games/<server>` on Linux and `C:\Games\<server>` on Windows. Type another path
   or pick a folder with **Browse…**.
-- **A folder that already has the game is fine** — for example your existing WoW 3.3.5a folder.
+- **A folder that already has the game is fine** — for example your existing 3.3.5a game client folder.
   Only missing or outdated files are downloaded, your addons, screenshots and settings stay.
 - Leave **Create a shortcut** ticked to get a shortcut on the desktop and in the Start Menu or
   application menu.
