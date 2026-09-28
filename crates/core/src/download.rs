@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use futures_util::StreamExt;
-use reqwest::header::{CONTENT_RANGE, RANGE};
+use reqwest::header::{CACHE_CONTROL, CONTENT_RANGE, RANGE};
 use reqwest::{Client, StatusCode, Url};
 use sha2::{Digest, Sha256};
 use tokio::fs::{self, OpenOptions};
@@ -15,6 +15,52 @@ use crate::state::FileRecord;
 use crate::update::Shared;
 
 const ATTEMPTS: u32 = 3;
+
+/// GETs a small file (manifest, launcher info) whole, bypassing caches.
+/// Retries transient failures and bodies shorter than their Content-Length,
+/// which some proxies send when they cut a response.
+pub(crate) async fn fetch_with_retry(client: &Client, url: &Url) -> Result<Vec<u8>> {
+    let mut attempt = 1;
+    loop {
+        match fetch(client, url).await {
+            Ok(body) => return Ok(body),
+            Err(e) => {
+                if attempt >= ATTEMPTS || !e.is_transient() {
+                    return Err(e);
+                }
+                tokio::time::sleep(Duration::from_secs(u64::from(attempt))).await;
+                attempt += 1;
+            }
+        }
+    }
+}
+
+async fn fetch(client: &Client, url: &Url) -> Result<Vec<u8>> {
+    let response = client
+        .get(url.clone())
+        .header(CACHE_CONTROL, "no-cache")
+        .send()
+        .await?;
+    let status = response.status();
+    if !status.is_success() {
+        return Err(Error::HttpStatus {
+            url: url.to_string(),
+            status: status.as_u16(),
+        });
+    }
+    let expected = response.content_length();
+    let body = response.bytes().await?.to_vec();
+    if let Some(expected) = expected
+        && body.len() as u64 != expected
+    {
+        return Err(Error::SizeMismatch {
+            path: url.to_string(),
+            expected,
+            actual: body.len() as u64,
+        });
+    }
+    Ok(body)
+}
 
 /// Downloads one file, retrying transient failures. Progress bytes of a failed
 /// attempt are taken back, so the bar never overshoots.

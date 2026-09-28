@@ -4,11 +4,10 @@ use std::sync::{Arc, Mutex, Once};
 use std::time::{Duration, Instant};
 
 use futures_util::{StreamExt, stream};
-use reqwest::header::CACHE_CONTROL;
 use reqwest::{Client, Url};
 use tokio::sync::Notify;
 
-use crate::download::download_with_retry;
+use crate::download::{download_with_retry, fetch_with_retry};
 use crate::error::{Error, Result};
 use crate::hash::sha256_file;
 use crate::manifest::{Manifest, ManifestFile};
@@ -144,19 +143,7 @@ pub(crate) fn http_client() -> Result<Client> {
 }
 
 async fn fetch_manifest(client: &Client, url: &Url) -> Result<Manifest> {
-    let response = client
-        .get(url.clone())
-        .header(CACHE_CONTROL, "no-cache")
-        .send()
-        .await?;
-    let status = response.status();
-    if !status.is_success() {
-        return Err(Error::HttpStatus {
-            url: url.to_string(),
-            status: status.as_u16(),
-        });
-    }
-    Manifest::parse(&response.bytes().await?)
+    Manifest::parse(&fetch_with_retry(client, url).await?)
 }
 
 /// Returns the files that have to be downloaded, refreshing `state` for the rest.

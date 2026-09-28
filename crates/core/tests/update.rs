@@ -5,6 +5,7 @@ use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -18,6 +19,9 @@ type Requests = Arc<Mutex<Vec<(String, Option<String>)>>>;
 struct Server {
     url: String,
     requests: Requests,
+    /// How many of the next version.json responses to cut in half, the way
+    /// a misbehaving proxy does.
+    cut_manifest: Arc<AtomicUsize>,
 }
 
 impl Server {
@@ -25,14 +29,19 @@ impl Server {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let url = format!("http://{}/patch/version.json", listener.local_addr().unwrap());
         let requests = Requests::default();
-        let (root, log) = (root.to_path_buf(), requests.clone());
+        let cut_manifest = Arc::new(AtomicUsize::new(0));
+        let (root, log, cut) = (root.to_path_buf(), requests.clone(), cut_manifest.clone());
         thread::spawn(move || {
             for stream in listener.incoming().flatten() {
-                let (root, log) = (root.clone(), log.clone());
-                thread::spawn(move || serve(stream, &root, &log));
+                let (root, log, cut) = (root.clone(), log.clone(), cut.clone());
+                thread::spawn(move || serve(stream, &root, &log, &cut));
             }
         });
-        Server { url, requests }
+        Server {
+            url,
+            requests,
+            cut_manifest,
+        }
     }
 
     /// File downloads so far (the manifest itself not counted).
@@ -43,9 +52,14 @@ impl Server {
             .cloned()
             .collect()
     }
+
+    fn manifest_gets(&self) -> usize {
+        let all = self.requests.lock().unwrap();
+        all.iter().filter(|(p, _)| p.ends_with("version.json")).count()
+    }
 }
 
-fn serve(stream: std::net::TcpStream, root: &Path, log: &Requests) {
+fn serve(stream: std::net::TcpStream, root: &Path, log: &Requests, cut: &AtomicUsize) {
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let mut line = String::new();
     reader.read_line(&mut line).unwrap();
@@ -86,8 +100,16 @@ fn serve(stream: std::net::TcpStream, root: &Path, log: &Requests) {
             body.len()
         ),
     };
+    let mut end = body.len();
+    if path.ends_with("version.json")
+        && cut
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |n| n.checked_sub(1))
+            .is_ok()
+    {
+        end /= 2;
+    }
     let _ = out.write_all(head.as_bytes());
-    let _ = out.write_all(&body[start.unwrap_or(0)..]);
+    let _ = out.write_all(&body[start.unwrap_or(0)..end]);
 }
 
 /// Patch folder with a manifest, served over HTTP.
@@ -287,6 +309,28 @@ async fn a_missing_file_on_the_server_is_an_error() {
     let err = fx.update(false).await.unwrap_err();
     assert!(matches!(err, Error::HttpStatus { status: 404, .. }), "{err}");
     assert_eq!(fx.server.file_gets().len(), 1, "404 is not retried");
+}
+
+#[tokio::test]
+async fn retries_a_manifest_cut_short() {
+    let fx = Fixture::new(&[("a.bin", b"aaaa")]);
+    fx.server.cut_manifest.store(2, Ordering::SeqCst);
+    fx.update(false).await.unwrap();
+    assert_eq!(fx.server.manifest_gets(), 3);
+    assert_eq!(fs::read(fx.game("a.bin")).unwrap(), b"aaaa");
+}
+
+#[tokio::test]
+async fn gives_up_on_a_manifest_that_keeps_getting_cut() {
+    let fx = Fixture::new(&[("a.bin", b"aaaa")]);
+    fx.server.cut_manifest.store(3, Ordering::SeqCst);
+    let err = fx.update(false).await.unwrap_err();
+    assert!(
+        matches!(err, Error::Http(_) | Error::SizeMismatch { .. }),
+        "{err}"
+    );
+    assert_eq!(fx.server.manifest_gets(), 3);
+    assert!(fx.server.file_gets().is_empty());
 }
 
 #[tokio::test]

@@ -44,7 +44,8 @@ already holds the game is fine: only missing or outdated files are downloaded.
 2. **Game files.** It fetches the manifest, checks the game files and downloads what is missing
    or changed, one file at a time. The status line shows the file count, bytes, speed and time
    left. Pause stops the download and Resume continues where it stopped; the same button offers
-   Retry when an update fails.
+   Retry when an update fails. The manifest and every file are retried a few times when the
+   connection drops or a response arrives cut short.
 3. **PLAY.** Once the files are up to date, PLAY starts the game. The launcher waits 3 seconds
    and closes if the game is still running. If the game quits within that time, the launcher
    stays open and says so.

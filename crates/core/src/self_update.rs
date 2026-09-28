@@ -14,11 +14,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use reqwest::header::CACHE_CONTROL;
-use reqwest::{StatusCode, Url};
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
-use crate::download::download_with_retry;
+use crate::download::{download_with_retry, fetch_with_retry};
 use crate::error::{Error, Result};
 use crate::manifest::{ManifestFile, check_relative_path};
 use crate::progress::Progress;
@@ -59,23 +58,13 @@ pub async fn check_launcher_update(info_url: &Url, current: &str) -> Result<Opti
         return Ok(None);
     };
     let client = http_client()?;
-    let response = client
-        .get(info_url.clone())
-        .header(CACHE_CONTROL, "no-cache")
-        .send()
-        .await?;
-    match response.status() {
-        StatusCode::NOT_FOUND => return Ok(None),
-        status if !status.is_success() => {
-            return Err(Error::HttpStatus {
-                url: info_url.to_string(),
-                status: status.as_u16(),
-            });
-        }
-        _ => {}
-    }
-    let info: LauncherInfo = serde_json::from_slice(&response.bytes().await?)
-        .map_err(|e| Error::Manifest(format!("launcher.json: {e}")))?;
+    let body = match fetch_with_retry(&client, info_url).await {
+        // No launcher.json: the host does not publish launcher updates.
+        Err(Error::HttpStatus { status: 404, .. }) => return Ok(None),
+        body => body?,
+    };
+    let info: LauncherInfo =
+        serde_json::from_slice(&body).map_err(|e| Error::Manifest(format!("launcher.json: {e}")))?;
     release_for(info, info_url, platform, current)
 }
 
