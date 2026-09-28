@@ -1,0 +1,21 @@
+# Third-party licenses
+
+The launcher binaries include the Rust crates listed below, each used under the license named
+for it. Slint is used under its Royalty-free license (last section). The full license texts
+follow.
+
+{{#each overview}}
+- {{{name}}} ({{count}})
+{{/each}}
+- Slint Royalty-free License 2.0 (slint and its i-slint-* crates)
+
+{{#each licenses}}
+## {{{name}}}
+
+Used by: {{#each used_by}}{{crate.name}} {{crate.version}}{{#unless @last}}, {{/unless}}{{/each}}
+
+```text
+{{{text}}}
+```
+
+{{/each}}

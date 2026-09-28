@@ -1,0 +1,25 @@
+# cargo-about config for THIRD-PARTY-LICENSES.md (see scripts/licenses.sh).
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+    "0BSD",
+    "LicenseRef-Slint-Royalty-free-2.0",
+]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-pc-windows-gnu"]
+ignore-dev-dependencies = true
+ignore-build-dependencies = true
+
+# Slint crates offer GPL-3.0, Royalty-free or commercial terms; the launcher uses
+# Royalty-free. cargo-about 0.9 cannot attach a LicenseRef text, so
+# scripts/licenses.sh appends it (it warns "has no license file" for them).

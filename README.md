@@ -268,6 +268,8 @@ run cargo fmt --all
 - `scripts/build.sh` makes the release binaries in `out/dist/`.
 - `scripts/mockup-shots.sh` saves a screenshot of every `MOCK` state to `docs/mockups/`.
   `UI_LANG=pl_PL scripts/mockup-shots.sh` takes them in Polish.
+- `scripts/licenses.sh` regenerates `THIRD-PARTY-LICENSES.md` from the dependency tree with
+  `cargo-about`. Run it after adding or updating dependencies.
 - `scripts/wine-test.sh` installs the Windows exe from `Downloads` under Wine in a throw-away
   container. It saves screenshots and the resulting files to `out/wine-test/`.
 
@@ -300,5 +302,7 @@ in `crates/app/lang/<language>/LC_MESSAGES/acore-launcher.po`, compiled into the
 - **Launcher.** MIT, see [LICENSE](LICENSE).
 - **Slint.** Used under its Royalty-free license, whose condition is met by the About dialog
   (`AboutSlint`).
+- **Rust dependencies.** MIT, Apache-2.0 and other permissive licenses, listed with their full
+  texts in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) (see `scripts/licenses.sh`).
 - **Fonts.** Cinzel and Inter, SIL Open Font License, texts in `crates/app/ui/assets/fonts/`.
 - **Artwork.** The background is a placeholder. Replace it with art you have the rights to.
