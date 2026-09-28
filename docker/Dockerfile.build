@@ -5,7 +5,7 @@ FROM rust:1-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libfontconfig1-dev \
         libxkbcommon-x11-0 libx11-xcb1 libxcursor1 libxi6 libxrandr2 \
-        xvfb imagemagick xdotool \
+        xvfb imagemagick xdotool gettext \
         gcc-mingw-w64-x86-64 \
         libgl1 libegl1 libgl1-mesa-dri \
     && rm -rf /var/lib/apt/lists/*

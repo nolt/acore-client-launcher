@@ -91,15 +91,28 @@ after changing them.
 
 ### Looks: `crates/app/ui/brand.slint` and `crates/app/ui/assets/`
 
-- `brand.slint` holds the server name and subtitle in the title bar, the plain name used for
-  shortcuts and the install folder (`app-name`), the window size, all colours and the fonts.
+- `brand.slint` holds the server name and subtitle in the title bar (the name is also the window
+  title and appears in About), the plain name used for shortcuts and the install folder
+  (`app-name`), the window size, the background offset, the frame, all colours and the fonts.
   `title-mode` picks text, `assets/logo.png` or nothing, for when the artwork already has the
   title.
-- `assets/background.jpg` is the background art.
-- `assets/icon.png` is the window and Linux menu icon. `assets/icon.ico` is the Windows exe icon
-  (sizes 16–256).
+- `assets/background.jpg` is the background art, cropped to fill the window (760×475 by default).
+- `assets/logo.png` is the title image for `title-mode: logo`, shown up to 84 px high.
+- `assets/icon.png` is the window and Linux menu icon (256×256). `assets/icon.ico` is the Windows
+  exe icon; make it from the PNG with all common sizes, e.g. with ImageMagick:
+
+  ```bash
+  convert icon.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
+  ```
+
 - `assets/fonts/` holds the fonts: Cinzel for titles and Inter for text. Both use the SIL Open
-  Font License.
+  Font License. To use other fonts, replace the files, keep their licence texts next to them and
+  set `title-font` / `body-font` in `brand.slint` to the family names.
+- The Windows file details (Properties → Details) say "Game launcher"; change `FileDescription`
+  and `ProductName` in `crates/app/build.rs`.
+- The binaries are called `acore-launcher`. To rename them, change `name` in
+  `crates/app/Cargo.toml` and the file names in `scripts/build.sh`. Players see the name only in
+  the downloaded file; shortcuts use `app-name`.
 
 ## Publishing game files and launcher updates
 
@@ -276,18 +289,26 @@ run cargo fmt --all
 ### Translations
 
 The texts live only in `.slint` files, wrapped in `@tr(...)`. Translations are gettext `.po` files
-in `crates/app/lang/<language>/LC_MESSAGES/acore-launcher.po`, compiled into the binary.
+in `crates/app/lang/<language>/LC_MESSAGES/acore-launcher.po`, compiled into the binary. The
+launcher picks the language from the system locale (`LANG` on Linux, the display language on
+Windows); texts without a translation, and languages without a `.po` file, stay in English.
 
 - **Add a language.** Copy `crates/app/lang/acore-launcher.pot` to
-  `lang/<code>/LC_MESSAGES/acore-launcher.po`, translate it and rebuild.
+  `crates/app/lang/<code>/LC_MESSAGES/acore-launcher.po`, where `<code>` is the language code
+  (`de`, `fr`, `es`, …). Fill in the `Language:` and `Plural-Forms:` headers, translate every
+  `msgstr` (keep each `{}` placeholder) and rebuild. `pl` is a complete example.
 - **Refresh the template after changing texts:**
 
   ```bash
   run cargo install slint-tr-extractor
   run target/cargo-home/bin/slint-tr-extractor crates/app/ui/*.slint -o crates/app/lang/acore-launcher.pot
+  run msgmerge --update --backup=none --no-wrap --no-fuzzy-matching \
+      crates/app/lang/pl/LC_MESSAGES/acore-launcher.po crates/app/lang/acore-launcher.pot
   ```
 
-  Then merge it into the `.po` files, e.g. with `msgmerge`.
+  `msgmerge` adds the new texts with an empty `msgstr` to each `.po` file; translate them.
+- **Check a language** without changing the system: `LANG=de_DE.UTF-8 MOCK=downloading
+  target/release/acore-launcher` on Linux, or `UI_LANG=de_DE scripts/mockup-shots.sh`.
 
 ## Known issues
 
