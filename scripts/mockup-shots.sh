@@ -21,7 +21,7 @@ docker run --rm -v "$repo:/src" -w /src -e CARGO_HOME=/src/target/cargo-home \
     # renderer fallback draws gradient fills without rounded corners.
     export DISPLAY=:99 SLINT_BACKEND=winit-femtovg SLINT_SCALE_FACTOR=1
     sleep 1
-    for state in downloading ready no-wine error install install-error tools clear-cache about; do
+    for state in downloading paused ready no-wine error install install-error tools clear-cache about; do
         MOCK=$state ./target/release/acore-launcher &
         pid=$!
         sleep 3

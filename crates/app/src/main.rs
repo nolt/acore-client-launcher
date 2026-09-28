@@ -41,6 +41,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     u.start(&ui, false);
                 }
             });
+            let u = updater.clone();
+            ui.on_pause(move || u.pause());
             let weak = ui.as_weak();
             ui.on_play(move || {
                 if let Some(ui) = weak.upgrade() {

@@ -184,6 +184,7 @@ fn run_update(args: &[String]) -> Result<(), String> {
         game_dir: PathBuf::from(dir),
         full_check: args.flag("--full-check"),
         concurrency: 1,
+        pause: None,
     };
 
     let runtime = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;

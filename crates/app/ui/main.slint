@@ -11,7 +11,7 @@ export enum Overlay { none, install, tools, confirm-clear-cache, about }
 
 // What the updater is doing; the status line is built from it here, so every
 // player-facing text stays in .slint files (translatable with @tr).
-export enum Phase { starting, launcher-update, fetching, checking, downloading, ready, updated, failed }
+export enum Phase { starting, launcher-update, fetching, checking, downloading, paused, ready, updated, failed }
 
 // Why the update failed, for a message the player can act on.
 export enum Failure { network, server, disk, manifest }
@@ -66,6 +66,7 @@ export component MainWindow inherits Window {
         : root.phase == Phase.fetching ? @tr("Checking for updates…")
         : root.phase == Phase.checking ? @tr("Checking files… {}/{}", root.done, root.total)
         : root.phase == Phase.downloading ? @tr("Downloading {}/{}  ({} / {})  ·  {}", root.done, root.total, root.bytes-done, root.bytes-total, root.current-file)
+        : root.phase == Phase.paused ? @tr("Paused — {} of {} downloaded.", root.bytes-done, root.bytes-total)
         : root.phase == Phase.ready ? @tr("Up to date — ready to play.")
         : root.phase == Phase.updated ? @tr("Updated to {} — ready to play.", root.game-version)
         : root.failure == Failure.server ? @tr("The update server is missing a file. Try again later.")
@@ -97,6 +98,7 @@ export component MainWindow inherits Window {
     callback close-window();
     callback play();
     callback retry();
+    callback pause();
     callback browse-install-dir();
     callback install-dir-edited(string);
     callback install();
@@ -262,9 +264,19 @@ export component MainWindow inherits Window {
 
                     Rectangle { horizontal-stretch: 1; }
 
-                    if root.can-retry: GhostButton {
-                        text: @tr("Retry");
-                        clicked => { root.retry(); }
+                    // One slot: Retry after a failure, Pause while downloading,
+                    // Resume once paused (resuming is a fresh start).
+                    if root.can-retry || root.phase == Phase.downloading || root.phase == Phase.paused: GhostButton {
+                        text: root.phase == Phase.downloading ? @tr("Pause")
+                            : root.phase == Phase.paused ? @tr("Resume")
+                            : @tr("Retry");
+                        clicked => {
+                            if (root.phase == Phase.downloading) {
+                                root.pause();
+                            } else {
+                                root.retry();
+                            }
+                        }
                     }
 
                     PlayButton {

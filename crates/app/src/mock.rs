@@ -21,6 +21,12 @@ pub fn apply(ui: &MainWindow, state: &str) {
         "tools" => ui.set_overlay(Overlay::Tools),
         "clear-cache" => ui.set_overlay(Overlay::ConfirmClearCache),
         "about" => ui.set_overlay(Overlay::About),
+        "paused" => {
+            ui.set_phase(Phase::Paused);
+            ui.set_bytes_done("148.2 MB".into());
+            ui.set_bytes_total("311.0 MB".into());
+            ui.set_progress(0.48);
+        }
         "install" | "install-error" => {
             ui.set_phase(Phase::Starting);
             ui.set_progress(0.0);

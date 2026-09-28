@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 use futures_util::{StreamExt, stream};
 use reqwest::header::CACHE_CONTROL;
 use reqwest::{Client, Url};
+use tokio::sync::Notify;
 
 use crate::download::download_with_retry;
 use crate::error::{Error, Result};
@@ -22,6 +23,27 @@ pub struct UpdateOptions {
     pub full_check: bool,
     /// Files downloaded at the same time.
     pub concurrency: usize,
+    /// Lets the player stop the downloads; `None` when nothing can pause.
+    pub pause: Option<Pause>,
+}
+
+/// Stops the downloads of one update: it ends with [`Error::Paused`], the
+/// `.part` files stay and the next update resumes them.
+#[derive(Clone, Default)]
+pub struct Pause(Arc<Notify>);
+
+impl Pause {
+    /// Also works when called before the downloads start.
+    pub fn request(&self) {
+        self.0.notify_one();
+    }
+
+    async fn requested(pause: Option<&Pause>) {
+        match pause {
+            Some(pause) => pause.0.notified().await,
+            None => std::future::pending().await,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,14 +90,24 @@ pub async fn update(
         .buffer_unordered(options.concurrency.max(1));
 
     let mut failure = None;
-    while let Some(result) = downloads.next().await {
+    loop {
+        let next = tokio::select! {
+            // Checked first, so a pause wins over the next finished file.
+            biased;
+            _ = Pause::requested(options.pause.as_ref()) => {
+                failure = Some(Error::Paused);
+                break;
+            }
+            next = downloads.next() => next,
+        };
+        let Some(result) = next else { break };
         match result {
             Ok((path, record)) => {
                 state.files.insert(path, record);
             }
             Err(e) => {
-                // Dropping the stream cancels the other downloads; their
-                // .part files stay and the next run resumes them.
+                // Dropping the stream cancels the other downloads (also on
+                // pause); their .part files stay and the next run resumes them.
                 failure = Some(e);
                 break;
             }

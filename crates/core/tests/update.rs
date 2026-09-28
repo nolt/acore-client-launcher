@@ -8,7 +8,9 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use launcher_core::{Error, GenerateOptions, LocalState, Progress, UpdateOptions, Url, generate, update};
+use launcher_core::{
+    Error, GenerateOptions, LocalState, Pause, Progress, UpdateOptions, Url, generate, update,
+};
 
 /// One GET the server received: path and Range header.
 type Requests = Arc<Mutex<Vec<(String, Option<String>)>>>;
@@ -139,6 +141,7 @@ impl Fixture {
             game_dir: self.game.path().to_path_buf(),
             full_check,
             concurrency: 3,
+            pause: None,
         };
         update(&options, |_| {}).await
     }
@@ -235,6 +238,35 @@ async fn resumes_an_interrupted_download() {
 }
 
 #[tokio::test]
+async fn pause_stops_the_downloads_and_the_next_run_finishes_them() {
+    let (a, b) = (big(200_000), big(100_000));
+    let fx = Fixture::new(&[("a.bin", &a), ("b.bin", &b)]);
+    let pause = Pause::default();
+    let on_download = pause.clone();
+    let options = UpdateOptions {
+        manifest_url: Url::parse(&fx.server.url).unwrap(),
+        game_dir: fx.game.path().to_path_buf(),
+        full_check: false,
+        concurrency: 1,
+        pause: Some(pause),
+    };
+    let err = update(&options, move |p| {
+        if matches!(p, Progress::Downloading { .. }) {
+            on_download.request();
+        }
+    })
+    .await
+    .unwrap_err();
+    assert!(matches!(err, Error::Paused), "{err}");
+    // One file at a time: the second one never started.
+    assert!(fx.server.file_gets().iter().all(|(p, _)| !p.ends_with("b.bin")));
+
+    fx.update(false).await.unwrap();
+    assert_eq!(fs::read(fx.game("a.bin")).unwrap(), a);
+    assert_eq!(fs::read(fx.game("b.bin")).unwrap(), b);
+}
+
+#[tokio::test]
 async fn a_corrupt_download_never_replaces_the_file() {
     let fx = Fixture::new(&[("a.bin", b"good")]);
     write(&fx.game("a.bin"), b"mine");
@@ -279,6 +311,7 @@ async fn reports_progress() {
         game_dir: fx.game.path().to_path_buf(),
         full_check: false,
         concurrency: 1,
+        pause: None,
     };
     update(&options, move |p| log.lock().unwrap().push(p))
         .await

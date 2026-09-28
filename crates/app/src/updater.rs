@@ -1,9 +1,9 @@
 //! Runs the core updater in the background and mirrors its progress in the window.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
-use launcher_core::{Error, Progress, UpdateOptions, Url, format, update};
+use launcher_core::{Error, Pause, Progress, UpdateOptions, Url, format, update};
 use slint::ComponentHandle;
 use tokio::runtime::Runtime;
 
@@ -13,6 +13,8 @@ use crate::{Failure, GameStartError, MainWindow, Notice, Phase, config, self_upd
 pub struct Updater {
     runtime: Arc<Runtime>,
     running: Arc<AtomicBool>,
+    /// Pause of the running update; a fresh one for every start.
+    pause: Arc<Mutex<Pause>>,
     /// The launcher itself is checked once per start, before the first update.
     launcher_checked: Arc<AtomicBool>,
 }
@@ -22,6 +24,7 @@ impl Updater {
         Ok(Updater {
             runtime: Arc::new(Runtime::new()?),
             running: Arc::new(AtomicBool::new(false)),
+            pause: Arc::default(),
             launcher_checked: Arc::new(AtomicBool::new(!self_update::wanted())),
         })
     }
@@ -37,6 +40,8 @@ impl Updater {
         ui.set_notice(Notice::None);
         ui.set_progress(0.0);
         ui.set_transfer_info("".into());
+        let pause = Pause::default();
+        *self.pause.lock().unwrap() = pause.clone();
 
         let weak = ui.as_weak();
         let running = self.running.clone();
@@ -52,6 +57,7 @@ impl Updater {
                         game_dir: config::game_dir(),
                         full_check,
                         concurrency: config::DOWNLOAD_CONCURRENCY,
+                        pause: Some(pause),
                     };
                     let progress_ui = weak.clone();
                     update(&options, move |p| {
@@ -74,6 +80,8 @@ impl Updater {
                             Phase::Ready
                         });
                     }
+                    // Progress stays where it stopped; the next start resumes.
+                    Err(Error::Paused) => ui.set_phase(Phase::Paused),
                     Err(e) => {
                         eprintln!("update failed: {e}");
                         ui.set_failure(failure_of(&e));
@@ -82,6 +90,11 @@ impl Updater {
                 }
             });
         });
+    }
+
+    /// Stops the downloads of the running update; `start` resumes them.
+    pub fn pause(&self) {
+        self.pause.lock().unwrap().request();
     }
 }
 
@@ -135,5 +148,6 @@ fn failure_of(error: &Error) -> Failure {
         Error::HttpStatus { .. } | Error::HashMismatch { .. } | Error::SizeMismatch { .. } => Failure::Server,
         Error::Io { .. } => Failure::Disk,
         Error::Manifest(_) => Failure::Manifest,
+        Error::Paused => unreachable!("a pause is not a failure"),
     }
 }

@@ -27,6 +27,8 @@ pub enum Error {
         expected: u64,
         actual: u64,
     },
+    /// The player paused the downloads.
+    Paused,
 }
 
 impl Error {
@@ -42,7 +44,7 @@ impl Error {
         match self {
             Error::Http(_) | Error::HashMismatch { .. } | Error::SizeMismatch { .. } => true,
             Error::HttpStatus { status, .. } => *status >= 500 || *status == 408 || *status == 429,
-            Error::Io { .. } | Error::Manifest(_) => false,
+            Error::Io { .. } | Error::Manifest(_) | Error::Paused => false,
         }
     }
 }
@@ -64,6 +66,7 @@ impl fmt::Display for Error {
             } => {
                 write!(f, "{path}: expected {expected} bytes, got {actual}")
             }
+            Error::Paused => write!(f, "paused"),
         }
     }
 }

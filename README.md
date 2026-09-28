@@ -43,7 +43,8 @@ already holds the game is fine: only missing or outdated files are downloaded.
    restarts.
 2. **Game files.** It fetches the manifest, checks the game files and downloads what is missing
    or changed, one file at a time. The status line shows the file count, bytes, speed and time
-   left.
+   left. Pause stops the download and Resume continues where it stopped; the same button offers
+   Retry when an update fails.
 3. **PLAY.** Once the files are up to date, PLAY starts the game. The launcher waits 3 seconds
    and closes if the game is still running. If the game quits within that time, the launcher
    stays open and says so.
@@ -258,7 +259,7 @@ run cargo fmt --all
 |---|---|
 | `LAUNCHER_MANIFEST_URL` | Overrides `MANIFEST_URL`, e.g. a local `python3 -m http.server`. |
 | `LAUNCHER_GAME_DIR` | Uses this game folder instead of the launcher's own, and skips the first-run install. |
-| `MOCK=<state>` | Shows a fixed screen with no network: `downloading`, `ready`, `no-wine`, `error`, `install`, `install-error`, `tools`, `clear-cache`, `about`. |
+| `MOCK=<state>` | Shows a fixed screen with no network: `downloading`, `paused`, `ready`, `no-wine`, `error`, `install`, `install-error`, `tools`, `clear-cache`, `about`. |
 | `SLINT_BACKEND=winit-software` | Forces the software renderer. |
 
 ### Scripts

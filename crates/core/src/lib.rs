@@ -34,4 +34,4 @@ pub use self_update::{
 };
 pub use shortcut::{Shortcut, create_shortcuts};
 pub use state::LocalState;
-pub use update::{UpdateOptions, UpdateSummary, update};
+pub use update::{Pause, UpdateOptions, UpdateSummary, update};
