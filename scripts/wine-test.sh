@@ -2,7 +2,7 @@
 # Smoke test of the Windows build under Wine: first-run install from Downloads,
 # shortcuts, deleting the original. Screenshots and a file listing land in
 # out/wine-test/. Needs target/x86_64-pc-windows-gnu/release/acore-launcher.exe
-# (see README, "Building"). Runs in a throw-away container.
+# (see docs/building.md). Runs in a throw-away container.
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
