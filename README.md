@@ -57,7 +57,7 @@ already holds the game is fine: only missing or outdated files are downloaded.
 | **Clear cache** | Deletes the cache folders from the config (`Cache/` by default), after asking. The game rebuilds them. |
 | **Check files** | Computes the SHA-256 of every game file instead of trusting size and date, then downloads damaged files again. |
 | **Open game folder** | Opens the folder in the file manager. |
-| **About** | Launcher version and the Slint attribution. |
+| **About** | Launcher version, the Slint attribution and **Licenses**: the launcher's MIT license and every third-party license, built into the binary. |
 
 The UI is in English and Polish. The language follows the system language.
 
@@ -273,7 +273,7 @@ run cargo fmt --all
 |---|---|
 | `LAUNCHER_MANIFEST_URL` | Overrides `MANIFEST_URL`, e.g. a local `python3 -m http.server`. |
 | `LAUNCHER_GAME_DIR` | Uses this game folder instead of the launcher's own, and skips the first-run install. |
-| `MOCK=<state>` | Shows a fixed screen with no network: `downloading`, `paused`, `ready`, `no-wine`, `error`, `install`, `install-error`, `tools`, `clear-cache`, `about`. |
+| `MOCK=<state>` | Shows a fixed screen with no network: `downloading`, `paused`, `ready`, `no-wine`, `error`, `install`, `install-error`, `tools`, `clear-cache`, `about`, `licenses`. |
 | `SLINT_BACKEND=winit-software` | Forces the software renderer. |
 
 ### Scripts
@@ -282,7 +282,8 @@ run cargo fmt --all
 - `scripts/mockup-shots.sh` saves a screenshot of every `MOCK` state to `docs/mockups/`.
   `UI_LANG=pl_PL scripts/mockup-shots.sh` takes them in Polish.
 - `scripts/licenses.sh` regenerates `THIRD-PARTY-LICENSES.md` from the dependency tree with
-  `cargo-about`. Run it after adding or updating dependencies.
+  `cargo-about`. Run it after adding or updating dependencies: the file is compiled into the
+  launcher and shown under About → Licenses.
 - `scripts/wine-test.sh` installs the Windows exe from `Downloads` under Wine in a throw-away
   container. It saves screenshots and the resulting files to `out/wine-test/`.
 
@@ -324,6 +325,8 @@ Windows); texts without a translation, and languages without a `.po` file, stay 
 - **Slint.** Used under its Royalty-free license, whose condition is met by the About dialog
   (`AboutSlint`).
 - **Rust dependencies.** MIT, Apache-2.0 and other permissive licenses, listed with their full
-  texts in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) (see `scripts/licenses.sh`).
+  texts in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) (see `scripts/licenses.sh`). The
+  launcher carries this file and its own `LICENSE` inside the binary (About → Licenses), so
+  nothing has to be shipped next to it.
 - **Fonts.** Cinzel and Inter, SIL Open Font License, texts in `crates/app/ui/assets/fonts/`.
 - **Artwork.** The background is a placeholder. Replace it with art you have the rights to.

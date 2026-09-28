@@ -1,4 +1,4 @@
-import { LineEdit, AboutSlint } from "std-widgets.slint";
+import { LineEdit, AboutSlint, ListView } from "std-widgets.slint";
 import { Brand, TitleMode } from "brand.slint";
 import { PlayButton, GhostButton, LinkButton, CaptionButton, AccentProgressBar, AccentCheckBox, ToolButton, Dialog } from "components.slint";
 
@@ -7,7 +7,10 @@ import "assets/fonts/Inter.ttf";
 
 export { Brand }
 
-export enum Overlay { none, install, tools, confirm-clear-cache, about }
+export enum Overlay { none, install, tools, confirm-clear-cache, about, licenses }
+
+// One line of the license texts; headings stand out.
+export struct LicenseLine { text: string, heading: bool }
 
 // What the updater is doing; the status line is built from it here, so every
 // player-facing text stays in .slint files (translatable with @tr).
@@ -92,6 +95,8 @@ export component MainWindow inherits Window {
     in property <string> cache-dirs;
 
     in property <string> version;
+    // The launcher's own license, then every third-party one.
+    in property <[LicenseLine]> license-lines;
 
     callback start-drag(length, length);
     callback minimise();
@@ -443,9 +448,43 @@ export component MainWindow inherits Window {
 
         HorizontalLayout {
             alignment: center;
+            spacing: 12px;
+            GhostButton {
+                text: @tr("Licenses");
+                clicked => { root.overlay = Overlay.licenses; }
+            }
             GhostButton {
                 text: @tr("Close");
                 clicked => { root.overlay = Overlay.tools; }
+            }
+        }
+    }
+
+    // Every license the binary is distributed under, from About.
+    if root.overlay == Overlay.licenses: Dialog {
+        title: @tr("LICENSES");
+        panel-width: 680px;
+
+        ListView {
+            height: 290px;
+            for line in root.license-lines: HorizontalLayout {
+                padding-right: 12px;
+                padding-bottom: 10px;
+                Text {
+                    text: line.text;
+                    color: line.heading ? Brand.accent : Brand.text-dim;
+                    font-size: line.heading ? 14px : 12px;
+                    font-weight: line.heading ? 700 : 400;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            GhostButton {
+                text: @tr("Close");
+                clicked => { root.overlay = Overlay.about; }
             }
         }
     }

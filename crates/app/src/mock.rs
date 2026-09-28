@@ -21,6 +21,7 @@ pub fn apply(ui: &MainWindow, state: &str) {
         "tools" => ui.set_overlay(Overlay::Tools),
         "clear-cache" => ui.set_overlay(Overlay::ConfirmClearCache),
         "about" => ui.set_overlay(Overlay::About),
+        "licenses" => ui.set_overlay(Overlay::Licenses),
         "paused" => {
             ui.set_phase(Phase::Paused);
             ui.set_bytes_done("148.2 MB".into());

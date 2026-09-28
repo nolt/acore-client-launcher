@@ -3,6 +3,7 @@
 
 mod config;
 mod game;
+mod licenses;
 mod mock;
 mod self_update;
 mod setup;
@@ -23,6 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ui.set_program(config::GAME_PROGRAM.into());
     ui.set_cache_dirs(tools::cache_dirs_label().into());
     ui.set_install_dir(config::game_dir().to_string_lossy().as_ref().into());
+    ui.set_license_lines(licenses::lines());
 
     match std::env::var("MOCK") {
         Ok(state) => mock::apply(&ui, &state),
