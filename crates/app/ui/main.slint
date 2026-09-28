@@ -92,7 +92,7 @@ export component MainWindow inherits Window {
 
     in property <string> version;
 
-    callback start-drag();
+    callback start-drag(length, length);
     callback minimise();
     callback close-window();
     callback play();
@@ -126,7 +126,7 @@ export component MainWindow inherits Window {
             TouchArea {
                 pointer-event(event) => {
                     if (event.kind == PointerEventKind.down && event.button == PointerEventButton.left) {
-                        root.start-drag();
+                        root.start-drag(self.mouse-x, self.mouse-y);
                     }
                 }
             }

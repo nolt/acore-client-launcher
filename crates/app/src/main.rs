@@ -9,6 +9,8 @@ mod setup;
 mod tools;
 mod updater;
 
+use slint::LogicalPosition;
+use slint::platform::{PointerEventButton, WindowEvent};
 use slint::winit_030::WinitWindowAccessor;
 
 use crate::updater::Updater;
@@ -62,10 +64,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let weak = ui.as_weak();
-    ui.on_start_drag(move || {
+    ui.on_start_drag(move |x, y| {
         if let Some(ui) = weak.upgrade() {
             ui.window().with_winit_window(|w| {
                 let _ = w.drag_window();
+            });
+            // The compositor takes over the move and, on Wayland, never sends
+            // the button release, so Slint keeps the title bar grabbed and
+            // swallows every later click. Release it ourselves once this
+            // event is done.
+            let weak = weak.clone();
+            slint::Timer::single_shot(std::time::Duration::ZERO, move || {
+                if let Some(ui) = weak.upgrade() {
+                    ui.window().dispatch_event(WindowEvent::PointerReleased {
+                        position: LogicalPosition::new(x, y),
+                        button: PointerEventButton::Left,
+                    });
+                }
             });
         }
     });
