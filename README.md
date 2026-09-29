@@ -84,3 +84,5 @@ Full walkthrough: **[Building](docs/building.md)** and **[Releasing updates](doc
 - **Slint.** Used under its Royalty-free license, whose condition is met by the About dialog.
 - **Fonts.** Cinzel and Inter, SIL Open Font License, texts in `crates/app/ui/assets/fonts/`.
 - **Artwork.** The background is a placeholder. Replace it with art you have the rights to.
+
+Original author: [Nolt](https://github.com/nolt).
