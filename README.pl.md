@@ -84,3 +84,6 @@ Pełny opis: **[Budowanie](docs/building.pl.md)** i **[Wydawanie aktualizacji](d
 - **Slint.** Na licencji Royalty-free, której warunek spełnia okno „O programie”.
 - **Fonty.** Cinzel i Inter, SIL Open Font License, teksty w `crates/app/ui/assets/fonts/`.
 - **Grafika.** Tło jest tymczasowe. Zastąp je grafiką, do której masz prawa.
+
+Autor oryginalny: [Nolt](https://github.com/nolt).
+
